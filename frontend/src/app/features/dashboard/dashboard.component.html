@@ -1,0 +1,148 @@
+<section class="factory-console">
+    <main class="console-main">
+      <div class="dashboard-heading">
+        <div>
+          <div class="dashboard-kicker"><span class="signal-dot" [class.signal-dot--live]="ready.production()" [class.signal-dot--offline]="!ready.production()"></span> FACTORY CONTROL ROOM <span class="kicker-divider">/</span> ERP LIVE DATA</div>
+          <h1>Welcome back, {{ auth.currentUser()?.fullName || 'Admin' }} <span class="welcome-wave">👋</span></h1>
+          <p>Here’s what’s happening across your connected factory today.</p>
+        </div>
+        <div class="sync-control">
+          <div class="sync-time"><span class="sync-dot" [class.sync-dot--working]="loading()"></span><span>{{ loading() ? 'SYNCING API RECORDS' : lastUpdated() ? 'LAST SYNC ' + (lastUpdated() | date:'HH:mm:ss') : 'WAITING FOR API' }}</span></div>
+          <button type="button" class="refresh-button" (click)="refresh()" [disabled]="loading()"><i class="bi bi-arrow-clockwise" [class.spin]="loading()"></i> Refresh</button>
+        </div>
+      </div>
+
+      <section class="factory-hero" aria-label="Factory operations visualization">
+        <div class="hero-copy">
+          <span class="hero-eyebrow"><i class="bi bi-stars"></i> VEYNAX MOTOR WORKS</span>
+          <h2>Automotive parts.<br><em>Production &amp; assembly.</em></h2>
+          <p>Sales, supply, production and quality working together in one ERP.</p>
+          <div class="hero-proof"><span class="hero-proof__pulse"></span><span>PRODUCTION API</span><strong>{{ ready.production() ? 'CONNECTED' : 'CONNECTING' }}</strong><i class="bi bi-arrow-right"></i></div>
+        </div>
+        <div class="factory-scene" aria-hidden="true">
+          <div class="scene-ceiling"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="scene-window scene-window--one"></div><div class="scene-window scene-window--two"></div>
+          <div class="scene-robot scene-robot--one"><i></i><b></b><span></span></div>
+          <div class="scene-robot scene-robot--two"><i></i><b></b><span></span></div>
+          <div class="scene-conveyor"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="scene-car scene-car--back"><i class="bi bi-car-front-fill"></i></div>
+          <div class="scene-car scene-car--front"><i class="bi bi-car-front-fill"></i></div>
+          <div class="scene-floor"></div>
+          <div class="scene-station"><span>ASSEMBLY VISUALIZATION</span><b><i></i> PREVIEW</b></div>
+          <div class="scene-hud"><span><i class="bi bi-broadcast-pin"></i> SHOP FLOOR</span><strong>{{ ready.production() ? activeWorkOrders : '—' }} ACTIVE ORDERS</strong></div>
+        </div>
+      </section>
+
+      @if (partial()) {
+        <div class="data-notice" role="status"><i class="bi bi-exclamation-circle"></i><span>Some backend data sources did not respond. The latest successful records are retained.</span></div>
+      }
+
+      <section class="metric-grid" aria-label="Live ERP metrics">
+        <article class="metric-card metric-card--primary">
+          <div class="metric-top"><span>VEHICLES PRODUCED</span><i class="bi bi-car-front-fill"></i></div>
+          <div class="metric-value">{{ ready.production() ? (unitsProduced | number) : '—' }}<small>units</small></div>
+          <div class="metric-foot"><span class="metric-trend"><i class="bi bi-database-check"></i> LIVE API</span> completed work-order units</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-top"><span>PARTS AVAILABLE</span><i class="bi bi-box-seam"></i></div>
+          <div class="metric-value">{{ ready.inventory() ? (partsAvailable | number) : '—' }}</div>
+          <div class="metric-foot">On hand less reserved stock</div>
+        </article>
+        <article class="metric-card metric-card--sales">
+          <div class="metric-top"><span>SALES ORDER VALUE</span><i class="bi bi-cart4"></i></div>
+          <div class="metric-value">{{ ready.sales() ? (salesValue | number:'1.0-0') : '—' }}</div>
+          <div class="metric-foot">Total of returned customer orders</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-top"><span>PURCHASE ORDERS</span><i class="bi bi-bag-check"></i></div>
+          <div class="metric-value">{{ ready.purchaseOrders() ? (data.purchaseOrders.length | number) : '—' }}</div>
+          <div class="metric-foot">{{ ready.purchaseOrders() ? pendingPurchaseOrders + ' awaiting receipt' : 'Purchase order API' }}</div>
+        </article>
+        <article class="metric-card metric-card--service">
+          <div class="metric-top"><span>PENDING SERVICE</span><i class="bi bi-wrench-adjustable"></i></div>
+          <div class="metric-value">{{ ready.maintenanceOrders() ? (pendingServiceOrders | number) : '—' }}</div>
+          <div class="metric-foot">Open maintenance work orders</div>
+        </article>
+      </section>
+
+      <section class="line-panel panel-card">
+        <div class="panel-heading">
+          <div><div class="section-kicker">PRODUCTION API · LIVE RECORDS</div><h2>Production order execution</h2><p>Work-order quantities and status returned by the backend.</p></div>
+          <div class="panel-tools"><span class="grid-count"><i class="bi bi-grid-3x3-gap"></i> {{ ready.production() ? data.workOrders.length : '—' }} ORDERS</span></div>
+        </div>
+        <div class="table-scroll"><table class="station-table">
+          <thead><tr><th>WORK ORDER</th><th>MODEL</th><th>LINE</th><th>COMPLETED / TARGET</th><th>EXECUTION</th><th>STATUS</th></tr></thead>
+          <tbody>
+            @if (!ready.production()) { <tr><td colspan="6" class="empty-record">Production API data is not available.</td></tr> }
+            @for (order of recentOrders; track order.id) {
+              <tr>
+                <td class="mono part-code">{{ order.id }}</td><td>{{ order.model }}</td><td>{{ order.line || '—' }}</td>
+                <td class="mono">{{ order.completed | number }} / {{ order.qty | number }}</td>
+                <td><div class="order-progress"><span [style.width.%]="progress(order)"></span></div></td>
+                <td><span class="state-pill">{{ order.status }}</span></td>
+              </tr>
+            }
+            @if (ready.production() && !data.workOrders.length) { <tr><td colspan="6" class="empty-record">No production orders have been recorded.</td></tr> }
+          </tbody>
+        </table></div>
+        <div class="grid-footer"><span><i class="bi bi-shield-check"></i> Quantities and statuses come from live ERP work-order records.</span><a routerLink="/production">Open work orders <i class="bi bi-arrow-up-right"></i></a></div>
+      </section>
+
+      <section class="lower-grid">
+        <article class="panel-card work-panel">
+          <div class="panel-heading panel-heading--compact"><div><div class="section-kicker">DERIVED FROM LIVE WORK ORDERS</div><h2>Production status mix</h2></div><a routerLink="/production" class="text-link">Details <i class="bi bi-arrow-up-right"></i></a></div>
+          <div class="status-chart">
+            <div class="status-donut" [style.background]="statusDonut"><div><strong>{{ ready.production() ? activeWorkOrders : '—' }}</strong><small>ACTIVE ORDERS</small></div></div>
+            @for (row of statusMix; track row.key) {
+              <div class="status-chart-row"><div><span>{{ row.label }}</span><strong>{{ ready.production() ? row.count : '—' }}</strong></div><div class="status-track"><i [style.width.%]="data.workOrders.length ? row.count / data.workOrders.length * 100 : 0" [style.background]="row.color"></i></div></div>
+            }
+          </div>
+          <div class="chart-note">Counts are calculated from work orders returned by the production API.</div>
+        </article>
+
+        <article class="activity-panel panel-card">
+          <div class="panel-heading panel-heading--compact"><div><div class="section-kicker">LIVE ERP RECORDS</div><h2>Recent ERP records</h2></div><a routerLink="/reports" class="text-link">Reports <i class="bi bi-arrow-up-right"></i></a></div>
+          <div class="activity-list">
+            @for (item of latestRecords; track item.title) {
+              <a class="activity-item" [routerLink]="item.route"><span class="activity-icon"><i [class]="'bi ' + item.icon"></i></span><span><strong>{{ item.title }}</strong><small>{{ item.detail }}</small></span><i class="bi bi-chevron-right activity-arrow"></i></a>
+            }
+            @if (!latestRecords.length) { <div class="activity-empty">Backend records will appear here after a successful sync.</div> }
+          </div>
+        </article>
+
+        <article class="alerts-panel panel-card">
+          <div class="panel-heading panel-heading--compact"><div><div class="section-kicker">OPERATIONAL SIGNALS</div><h2>Alerts &amp; notifications</h2></div><span class="gap-count">{{ currentAlerts.length }} OPEN</span></div>
+          <div class="alert-list">
+            @for (item of currentAlerts; track item.title) {
+              <a class="alert-item" [routerLink]="item.route"><span class="alert-icon" [class.alert-icon--warning]="item.tone === 'warning'" [class.alert-icon--info]="item.tone === 'info'"><i [class]="'bi ' + item.icon"></i></span><span><strong>{{ item.title }}</strong><small>{{ item.detail }}</small></span></a>
+            }
+            @if (!currentAlerts.length) { <div class="activity-empty">{{ lastUpdated() ? 'No open alerts from the data returned by connected APIs.' : 'Alerts will appear when backend records are available.' }}</div> }
+          </div>
+        </article>
+      </section>
+
+      <section class="api-gap-panel panel-card integration-panel">
+          <div class="panel-heading panel-heading--compact"><div><div class="section-kicker">INTEGRATION BACKLOG</div><h2>API gaps &amp; wiring</h2></div><span class="gap-count">{{ apiGaps.length }} ITEMS</span></div>
+          <div class="gap-list">
+            @for (gap of apiGaps; track gap.title) {
+              <div class="gap-row">
+                <span class="gap-icon" [class.gap-icon--pending]="gap.status === 'UI PENDING'" [class.gap-icon--partial]="gap.status === 'PARTIAL API'"><i class="bi" [class.bi-braces]="gap.status === 'API MISSING'" [class.bi-circle-half]="gap.status === 'PARTIAL API'" [class.bi-window]="gap.status === 'UI PENDING'"></i></span>
+                <div class="gap-copy"><div><strong>{{ gap.title }}</strong><span class="gap-area">{{ gap.area }}</span></div><p>{{ gap.detail }}</p><code>{{ gap.route }}</code></div>
+                <span class="gap-status" [class.gap-status--pending]="gap.status === 'UI PENDING'" [class.gap-status--partial]="gap.status === 'PARTIAL API'">{{ gap.status }}</span>
+              </div>
+            }
+          </div>
+          <div class="gap-foot"><i class="bi bi-lightbulb"></i><span>Missing operational endpoints are listed here; displayed KPIs and order rows use backend records.</span></div>
+      </section>
+
+      <nav class="dashboard-shortcuts" aria-label="Factory module shortcuts">
+        <a routerLink="/engineering"><i class="bi bi-boxes"></i><span><strong>Parts catalog</strong><small>Parts, BOM &amp; routing</small></span><i class="bi bi-arrow-up-right"></i></a>
+        <a routerLink="/supply-chain"><i class="bi bi-truck"></i><span><strong>Manage suppliers</strong><small>Orders and supplier records</small></span><i class="bi bi-arrow-up-right"></i></a>
+        <a routerLink="/inventory"><i class="bi bi-box-seam"></i><span><strong>Manage inventory</strong><small>Stock and MRP</small></span><i class="bi bi-arrow-up-right"></i></a>
+        <a routerLink="/maintenance"><i class="bi bi-wrench-adjustable"></i><span><strong>Service &amp; maintenance</strong><small>Assets and work orders</small></span><i class="bi bi-arrow-up-right"></i></a>
+        <a routerLink="/reports"><i class="bi bi-bar-chart-line"></i><span><strong>Reports &amp; analytics</strong><small>Connected ERP reports</small></span><i class="bi bi-arrow-up-right"></i></a>
+      </nav>
+
+      <footer class="console-footer"><span>VEYNAx FACTORY ERP <b>·</b> PLANT 01</span><span>ERP RECORDS <i></i> · LAST REFRESH {{ lastUpdated() ? (lastUpdated() | date:'HH:mm:ss') : '—' }}</span></footer>
+    </main>
+</section>

@@ -1,0 +1,22 @@
+
+    <div class="global-search-box">
+      <div class="position-relative">
+        <i class="bi bi-search search-leading-icon"></i>
+        <input type="text" class="form-control form-control-sm search-input" aria-label="Search ERP records"
+               placeholder="Search parts, suppliers, PO, VIN or work order…" [(ngModel)]="query" (ngModelChange)="onChange()" (blur)="onBlur()" (focus)="open.set(true)">
+      </div>
+      @if (open() && results().length) {
+        <div class="search-results">
+          @for (r of results(); track r.kind + ':' + r.id) {
+            <button type="button" class="search-result" [attr.aria-label]="'Open ' + r.kind + ' ' + r.id" (mousedown)="go(r)">
+              <span class="search-kind">{{ r.kind }}</span>
+              <span class="mono">{{ r.label }}</span>
+            </button>
+          }
+        </div>
+      }
+      @if (open() && query() && !results().length) {
+        <div class="search-results search-empty">No matches in loaded records for “{{ query() }}”</div>
+      }
+    </div>
+  

@@ -1,0 +1,21 @@
+
+    <div class="notification-anchor">
+      <button type="button" class="notification-trigger position-relative" aria-label="Notifications" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+        <i class="bi bi-bell"></i>
+        @if (unread() > 0) {
+          <span class="notification-count">{{ unread() }}</span>
+        }
+      </button>
+      @if (open()) {
+        <div class="notification-menu">
+          <div class="notification-menu__head">
+            <strong>Notifications</strong>
+            @if (notifications.length) { <button type="button" (click)="markAllRead()">Mark all read</button> }
+          </div>
+          @if (notifications.length === 0) {
+            <div class="notification-empty"><i class="bi bi-bell-slash"></i><span>Notifications are unavailable</span><small>The backend has no notification API yet.</small></div>
+          }
+        </div>
+      }
+    </div>
+  
