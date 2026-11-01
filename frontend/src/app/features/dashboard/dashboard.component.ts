@@ -85,6 +85,9 @@ export class DashboardComponent {
 
   get unitsProduced(): number { return this.data.workOrders.reduce((sum, order) => sum + order.completed, 0); }
   get partsAvailable(): number { return this.data.stock.reduce((sum, item) => sum + Math.max(0, item.onHand - item.reserved), 0); }
+  get inStockCount(): number { return this.data.stock.filter(item => item.onHand > item.reserved).length; }
+  get zeroAvailableCount(): number { return this.data.stock.filter(item => item.onHand - item.reserved <= 0).length; }
+  get stockRecordCount(): number { return this.data.stock.length; }
   get salesValue(): number { return this.data.salesOrders.reduce((sum, order) => sum + order.amount, 0); }
   get pendingPurchaseOrders(): number { return this.data.purchaseOrders.filter(order => !['RECEIVED', 'CANCELLED', 'CLOSED'].includes((order.status || '').toUpperCase())).length; }
   get pendingServiceOrders(): number { return this.data.maintenanceOrders.filter(order => !['COMPLETED', 'CANCELLED', 'CLOSED'].includes((order.status || '').toUpperCase())).length; }
