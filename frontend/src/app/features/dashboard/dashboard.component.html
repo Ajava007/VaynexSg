@@ -18,15 +18,45 @@
         <p>From CKD/SKD kits and parts receiving to vehicle assembly, quality and delivery.</p>
         <div class="hero-live"><i></i> FACTORY OPERATIONS <strong>{{ ready.production() ? 'CONNECTED' : 'CONNECTING' }}</strong></div>
       </div>
-      <div class="hero-visual" aria-hidden="true"><div class="hero-halo"></div><div class="hero-factory"><i class="bi bi-buildings-fill"></i><span>VEYNAX</span></div><div class="hero-car"><i class="bi bi-car-front-fill"></i></div><div class="hero-floor"></div></div>
+      <div class="hero-visual" role="img" aria-label="Illustration of a vehicle moving through a modern automotive assembly plant"><img src="assets/images/veynax-factory-hero.svg" alt="" /></div>
+    </section>
+
+    <section class="executive-pulse" aria-label="Owner ten-second factory summary">
+      <div class="pulse-heading">
+        <div><span class="pulse-kicker">OWNER'S BRIEF</span><h2>Factory pulse</h2><p>Four signals to understand the operation at a glance</p></div>
+        <span class="pulse-updated"><i></i>{{ loading() ? 'SYNCING LIVE DATA' : (lastUpdated() ? 'LATEST API SNAPSHOT' : 'WAITING FOR DATA') }}</span>
+      </div>
+      <div class="pulse-grid">
+        <a class="pulse-card pulse-production" routerLink="/production">
+          <span class="pulse-icon"><i class="bi bi-car-front-fill"></i></span>
+          <span class="pulse-copy"><small>BUILD COMPLETION</small><strong>{{ ready.production() && buildCompletionRate !== null ? buildCompletionRate + '%' : '—' }}</strong><em>{{ ready.production() ? (unitsProduced | number) + ' of ' + (plannedUnits | number) + ' planned units on loaded work orders' : 'Production data unavailable' }}</em></span>
+          <span class="pulse-state" [class.pulse-state-good]="buildCompletionRate === 100">VIEW BUILD <i class="bi bi-arrow-up-right"></i></span>
+        </a>
+        <a class="pulse-card pulse-quality" routerLink="/quality">
+          <span class="pulse-icon"><i class="bi bi-shield-check"></i></span>
+          <span class="pulse-copy"><small>QUALITY PASS RATE</small><strong>{{ ready.inspections() && inspectionPassRate !== null ? inspectionPassRate + '%' : '—' }}</strong><em>{{ ready.inspections() ? failedInspections + ' failed results in loaded inspections' : 'Inspection data unavailable' }}</em></span>
+          <span class="pulse-state" [class.pulse-state-good]="ready.inspections() && inspectionPassRate === 100">VIEW QUALITY <i class="bi bi-arrow-up-right"></i></span>
+        </a>
+        <a class="pulse-card pulse-supply" routerLink="/inventory">
+          <span class="pulse-icon"><i class="bi bi-box-seam"></i></span>
+          <span class="pulse-copy"><small>ZERO-STOCK PARTS</small><strong>{{ ready.inventory() ? (criticalPartGaps | number) : '—' }}</strong><em>{{ ready.inventory() ? 'Parts with no unreserved stock' : 'Inventory data unavailable' }}</em></span>
+          <span class="pulse-state" [class.pulse-state-good]="ready.inventory() && criticalPartGaps === 0">VIEW STOCK <i class="bi bi-arrow-up-right"></i></span>
+        </a>
+        <a class="pulse-card pulse-cash" routerLink="/sales-payments">
+          <span class="pulse-icon"><i class="bi bi-wallet2"></i></span>
+          <span class="pulse-copy"><small>PAYMENT FOLLOW-UP</small><strong>{{ ready.sales() ? (ordersAwaitingPayment | number) : '—' }}</strong><em>{{ ready.sales() ? 'Sales orders not marked paid' : 'Sales data unavailable' }}</em></span>
+          <span class="pulse-state" [class.pulse-state-good]="ready.sales() && ordersAwaitingPayment === 0">VIEW SALES <i class="bi bi-arrow-up-right"></i></span>
+        </a>
+      </div>
+      <p class="pulse-footnote">Figures reflect the latest API response and loaded records (up to 100 per list), not a guaranteed whole-factory or today's total.</p>
     </section>
 
     <section class="overview-metrics" aria-label="Factory key performance indicators">
-      <article class="overview-metric metric-blue"><div class="metric-icon"><i class="bi bi-car-front-fill"></i></div><div class="metric-number">{{ ready.production() ? (unitsProduced | number) : '—' }}</div><div class="metric-label">Vehicles Produced</div><small>{{ ready.production() ? 'Completed work-order units' : 'Production API unavailable' }}</small></article>
+      <article class="overview-metric metric-blue"><div class="metric-icon"><i class="bi bi-car-front-fill"></i></div><div class="metric-number">{{ ready.production() ? (unitsProduced | number) : '—' }}</div><div class="metric-label">Completed Units</div><small>{{ ready.production() ? 'Across loaded work orders' : 'Production API unavailable' }}</small></article>
       <article class="overview-metric metric-violet"><div class="metric-icon"><i class="bi bi-building-gear"></i></div><div class="metric-number">{{ ready.production() ? (activeWorkOrders | number) : '—' }}</div><div class="metric-label">Active Work Orders</div><small>Open production orders</small></article>
-      <article class="overview-metric metric-green"><div class="metric-icon"><i class="bi bi-box-seam-fill"></i></div><div class="metric-number">{{ ready.inventory() ? (partsAvailable | number) : '—' }}</div><div class="metric-label">Available Parts</div><small>On hand less reserved stock</small></article>
+      <article class="overview-metric metric-green"><div class="metric-icon"><i class="bi bi-box-seam-fill"></i></div><div class="metric-number">{{ ready.inventory() ? (inStockCount | number) : '—' }}</div><div class="metric-label">Parts with Available Stock</div><small>Inventory records with unreserved stock</small></article>
       <article class="overview-metric metric-amber"><div class="metric-icon"><i class="bi bi-cart4"></i></div><div class="metric-number">{{ ready.purchaseOrders() ? (data.purchaseOrders.length | number) : '—' }}</div><div class="metric-label">Purchase Orders</div><small>{{ ready.purchaseOrders() ? pendingPurchaseOrders + ' awaiting receipt' : 'Purchasing API unavailable' }}</small></article>
-      <article class="overview-metric metric-teal"><div class="metric-icon"><i class="bi bi-cash-stack"></i></div><div class="metric-number">{{ ready.sales() ? (salesValue | number:'1.0-0') : '—' }}</div><div class="metric-label">Sales Order Value</div><small>Total value of returned orders</small></article>
+      <article class="overview-metric metric-teal"><div class="metric-icon"><i class="bi bi-cash-stack"></i></div><div class="metric-number">{{ ready.sales() ? (salesValue | number:'1.0-0') : '—' }}</div><div class="metric-label">Sales Order Value</div><small>Value in loaded sales orders</small></article>
       <article class="overview-metric metric-purple"><div class="metric-icon"><i class="bi bi-wrench-adjustable"></i></div><div class="metric-number">{{ ready.maintenanceOrders() ? (pendingServiceOrders | number) : '—' }}</div><div class="metric-label">Pending Service</div><small>Open maintenance work orders</small></article>
     </section>
 
@@ -50,13 +80,13 @@
       </article>
 
       <article class="overview-panel alerts-panel">
-        <div class="overview-panel-head"><div><h2><i class="bi bi-bell-fill"></i> Alerts &amp; Notifications</h2><p>Items requiring attention</p></div><span class="alert-counter">{{ currentAlerts.length }}</span></div>
-        <div class="overview-alert-list">@for (item of currentAlerts; track item.title) {<a [routerLink]="item.route" class="overview-alert"><i [class]="'bi ' + item.icon"></i><span><b>{{ item.title }}</b><small>{{ item.detail }}</small></span><i class="bi bi-chevron-right"></i></a>} @if (!currentAlerts.length) {<div class="overview-empty">No active alerts from connected APIs.</div>}</div>
+        <div class="overview-panel-head"><div><h2><i class="bi bi-bell-fill"></i> Owner Attention</h2><p>Decisions and exceptions requiring follow-up</p></div><span class="alert-counter">{{ currentAlerts.length }}</span></div>
+        <div class="overview-alert-list">@for (item of currentAlerts; track item.title) {<a [routerLink]="item.route" class="overview-alert"><i [class]="'bi ' + item.icon"></i><span><b>{{ item.title }}</b><small>{{ item.detail }}</small></span><i class="bi bi-chevron-right"></i></a>} @if (!currentAlerts.length && riskSignalsReady) {<div class="overview-empty">No exceptions detected in the loaded records.</div>} @if (!riskSignalsReady && !currentAlerts.length) {<div class="overview-empty">Risk checks are incomplete while factory data is loading or unavailable.</div>}</div>
       </article>
     </section>
 
     <section class="overview-bottom-grid">
-      <article class="overview-panel inventory-panel"><div class="overview-panel-head"><div><h2><i class="bi bi-boxes"></i> Inventory &amp; Parts Summary</h2><p>Live stock position</p></div><a routerLink="/inventory">View Details <i class="bi bi-arrow-right"></i></a></div><div class="inventory-content"><div><strong class="inventory-total">{{ ready.inventory() ? (partsAvailable | number) : '—' }}</strong><span>Available units</span><small>Across returned inventory records</small></div><div class="inventory-ring"><i class="bi bi-box-seam"></i></div><div class="inventory-stats"><div><i class="dot-green"></i><span>In stock</span><b>{{ ready.inventory() ? inStockCount : '—' }}</b></div><div><i class="dot-blue"></i><span>Zero available</span><b>{{ ready.inventory() ? zeroAvailableCount : '—' }}</b></div><div><i class="dot-amber"></i><span>Stock records</span><b>{{ ready.inventory() ? stockRecordCount : '—' }}</b></div></div></div></article>
+      <article class="overview-panel inventory-panel"><div class="overview-panel-head"><div><h2><i class="bi bi-boxes"></i> Inventory &amp; Parts Summary</h2><p>Live stock position</p></div><a routerLink="/inventory">View Details <i class="bi bi-arrow-right"></i></a></div><div class="inventory-content"><div><strong class="inventory-total">{{ ready.inventory() ? (inStockCount | number) : '—' }}</strong><span>Part records with available stock</span><small>Across returned inventory records</small></div><div class="inventory-ring"><i class="bi bi-box-seam"></i></div><div class="inventory-stats"><div><i class="dot-green"></i><span>In stock</span><b>{{ ready.inventory() ? inStockCount : '—' }}</b></div><div><i class="dot-blue"></i><span>Zero available</span><b>{{ ready.inventory() ? zeroAvailableCount : '—' }}</b></div><div><i class="dot-amber"></i><span>Stock records</span><b>{{ ready.inventory() ? stockRecordCount : '—' }}</b></div></div></div></article>
       <article class="overview-panel commercial-panel"><div class="overview-panel-head"><div><h2><i class="bi bi-graph-up-arrow"></i> Sales &amp; Purchasing Summary</h2><p>Customer orders and supplier commitments</p></div></div><div class="commercial-stats"><div><span>SALES ORDER VALUE</span><strong>{{ ready.sales() ? (salesValue | number:'1.0-0') : '—' }}</strong><a routerLink="/sales-payments">Sales details <i class="bi bi-arrow-up-right"></i></a></div><div><span>PURCHASE ORDERS</span><strong>{{ ready.purchaseOrders() ? data.purchaseOrders.length : '—' }}</strong><a routerLink="/supply-chain">Purchasing details <i class="bi bi-arrow-up-right"></i></a></div></div><div class="commercial-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><small class="chart-disclaimer">Operational totals · bars are decorative, not historical trends</small></article>
       <article class="overview-panel activity-panel"><div class="overview-panel-head"><div><h2><i class="bi bi-lightning-charge-fill"></i> Recent Activity</h2><p>Latest ERP records</p></div><a routerLink="/reports">View All <i class="bi bi-arrow-right"></i></a></div><div class="activity-timeline">@for (item of latestRecords.slice(0, 4); track item.title) {<a [routerLink]="item.route"><i [class]="'bi ' + item.icon"></i><span><b>{{ item.title }}</b><small>{{ item.detail }}</small></span></a>} @if (!latestRecords.length) {<div class="overview-empty">Recent records will appear after sync.</div>}</div></article>
       <article class="overview-panel quick-panel"><div class="overview-panel-head"><div><h2><i class="bi bi-grid-fill"></i> Quick Actions</h2><p>Common factory tasks</p></div></div><div class="quick-actions"><a routerLink="/production"><i class="bi bi-plus-circle"></i><span>Create<br>Work Order</span></a><a routerLink="/engineering"><i class="bi bi-box-seam"></i><span>Parts<br>Catalog</span></a><a routerLink="/supply-chain"><i class="bi bi-people"></i><span>Manage<br>Suppliers</span></a><a routerLink="/inventory"><i class="bi bi-bar-chart-fill"></i><span>View<br>Inventory</span></a></div></article>

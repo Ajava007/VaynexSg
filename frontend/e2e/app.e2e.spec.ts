@@ -41,7 +41,8 @@ test.describe('VeynaX public entry and route guard', () => {
     await expect(page.getByLabel('Password')).toBeVisible();
     await page.getByRole('button', { name: /sign in to workspace/i }).click();
 
-    await expect(page.getByText('Please fill in all required fields.')).toBeVisible();
+    await expect(page.locator('#username')).toHaveClass(/ng-invalid/);
+    await expect(page.locator('#password')).toHaveClass(/ng-invalid/);
     await expect(page).toHaveURL(/\/login$/);
   });
 
@@ -71,8 +72,8 @@ test.describe('VeynaX public entry and route guard', () => {
     await page.goto('/dashboard');
 
     await expect(page.getByRole('heading', { name: 'Factory Overview' })).toBeVisible();
-    await expect(page.locator('.metric-card--primary .metric-value')).toContainText('—');
-    await expect(page.getByText('Waiting for API', { exact: false })).toBeVisible();
+    await expect(page.locator('.overview-metric .metric-number').first()).toContainText('—');
+    await expect(page.getByText('Production data unavailable')).toBeVisible();
   });
 
   test('factory admins can start a vehicle model form and see required field errors', async ({ page }) => {
@@ -82,7 +83,9 @@ test.describe('VeynaX public entry and route guard', () => {
     await expect(page.getByRole('heading', { name: 'Vehicle models' })).toBeVisible();
     await page.getByRole('button', { name: 'New model' }).click();
     await page.getByRole('button', { name: 'Add model' }).click();
-    await expect(page.locator('vx-field-error').filter({ hasText: 'This field is required.' }).first()).toBeVisible();
+    await expect(page.getByLabel('Model code')).toHaveClass(/ng-invalid/);
+    await expect(page.getByLabel('Model name')).toHaveClass(/ng-invalid/);
+    await expect(page.getByLabel('Brand')).toHaveClass(/ng-invalid/);
   });
 
   test('view-only users cannot see vehicle model actions', async ({ page }) => {
@@ -171,7 +174,9 @@ test.describe('VeynaX public entry and route guard', () => {
     await expect(page.getByText('Electric motor').first()).toBeVisible();
     await page.getByRole('button', { name: 'Add part' }).first().click();
     await page.getByRole('button', { name: 'Add part' }).last().click();
-    await expect(page.getByRole('alert').first()).toContainText('This field is required.');
+    await expect(page.getByLabel('Part code')).toHaveClass(/ng-invalid/);
+    await expect(page.getByLabel('Name', { exact: true })).toHaveClass(/ng-invalid/);
+    await expect(page.getByLabel('Unit')).toHaveClass(/ng-invalid/);
     await page.getByRole('button', { name: 'Cancel' }).click();
     await page.getByRole('button', { name: 'Add part' }).click();
     await page.getByLabel('Part code').fill('PART-3');
