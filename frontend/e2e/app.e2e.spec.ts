@@ -41,7 +41,7 @@ test.describe('VeynaX public entry and route guard', () => {
     await expect(page.getByLabel('Password')).toBeVisible();
     await page.getByRole('button', { name: /sign in to workspace/i }).click();
 
-    await expect(page.getByRole('alert').first()).toContainText('This field is required.');
+    await expect(page.getByText('Please fill in all required fields.')).toBeVisible();
     await expect(page).toHaveURL(/\/login$/);
   });
 
@@ -70,7 +70,7 @@ test.describe('VeynaX public entry and route guard', () => {
 
     await page.goto('/dashboard');
 
-    await expect(page.getByRole('heading', { name: /Welcome back,/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Factory Overview' })).toBeVisible();
     await expect(page.locator('.metric-card--primary .metric-value')).toContainText('—');
     await expect(page.getByText('Waiting for API', { exact: false })).toBeVisible();
   });
@@ -82,7 +82,7 @@ test.describe('VeynaX public entry and route guard', () => {
     await expect(page.getByRole('heading', { name: 'Vehicle models' })).toBeVisible();
     await page.getByRole('button', { name: 'New model' }).click();
     await page.getByRole('button', { name: 'Add model' }).click();
-    await expect(page.getByRole('alert').first()).toContainText('This field is required.');
+    await expect(page.locator('vx-field-error').filter({ hasText: 'This field is required.' }).first()).toBeVisible();
   });
 
   test('view-only users cannot see vehicle model actions', async ({ page }) => {
