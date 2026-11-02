@@ -30,6 +30,21 @@ export class DashboardComponent {
     { title: 'Approval queue', area: 'GOVERNANCE', status: 'API MISSING', detail: 'The backend does not expose an approval request or decision endpoint.', route: 'Needed: /api/v1/approvals/*' }
   ];
 
+  get plannedUnits(): number { return this.data.workOrders.reduce((sum, order) => sum + Math.max(0, order.qty), 0); }
+  get buildCompletionRate(): number | null {
+    return this.plannedUnits > 0 ? Math.min(100, Math.round(this.unitsProduced / this.plannedUnits * 100)) : null;
+  }
+  get criticalPartGaps(): number { return this.ready.inventory() ? this.zeroAvailableCount : 0; }
+  get failedInspections(): number {
+    return this.data.inspections.filter(row => ['FAIL', 'FAILED', 'REJECTED'].includes((row.result || '').toUpperCase())).length;
+  }
+  get pausedWorkOrders(): number {
+    return this.data.workOrders.filter(order => (order.status || '').toUpperCase() === 'PAUSED').length;
+  }
+  get riskSignalsReady(): boolean {
+    return this.ready.production() && this.ready.inspections() && this.ready.ncrs() &&
+      this.ready.inventory() && this.ready.maintenanceOrders() && this.ready.sales();
+  }
   get recentOrders() { return this.data.workOrders.slice(0, 6); }
   progress(order: { qty: number; completed: number }): number {
     return order.qty > 0 ? Math.min(100, Math.max(0, order.completed / order.qty * 100)) : 0;
@@ -70,7 +85,10 @@ export class DashboardComponent {
     }
     if (this.ready.ncrs() && this.openNcrs) alerts.push({ icon: 'bi-exclamation-diamond-fill', tone: 'warning', title: 'Open quality cases', detail: `${this.openNcrs} nonconformance records remain active`, route: '/quality' });
     if (this.ready.maintenanceOrders() && this.pendingServiceOrders) alerts.push({ icon: 'bi-wrench-adjustable', tone: 'info', title: 'Service work in queue', detail: `${this.pendingServiceOrders} maintenance orders are not closed`, route: '/maintenance' });
-    return alerts.slice(0, 4);
+    if (this.ready.production() && this.pausedWorkOrders) alerts.push({ icon: 'bi-pause-circle-fill', tone: 'warning', title: 'Production orders paused', detail: `${this.pausedWorkOrders} work orders need a restart decision`, route: '/production' });
+    if (this.ready.inspections() && this.failedInspections) alerts.push({ icon: 'bi-shield-x', tone: 'danger', title: 'Failed quality inspections', detail: `${this.failedInspections} failed results in the loaded inspection records`, route: '/quality' });
+    if (this.ready.sales() && this.ordersAwaitingPayment) alerts.push({ icon: 'bi-cash-coin', tone: 'warning', title: 'Sales orders awaiting payment', detail: `${this.ordersAwaitingPayment} orders are not marked paid`, route: '/sales-payments' });
+    return alerts.slice(0, 6);
   }
 
   constructor(public auth: AuthService, public data: AppDataService, private readonly api: BackendApiService) {
