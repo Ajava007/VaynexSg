@@ -56,7 +56,7 @@ export class DashboardComponent {
       { label: 'Completed', key: 'COMPLETED', color: '#48b9d3' },
       { label: 'Paused', key: 'PAUSED', color: '#efb94d' }
     ];
-    return rows.map(row => ({ ...row, count: this.data.workOrders.filter(order => order.status === row.key).length }));
+    return rows.map(row => ({ ...row, count: this.data.workOrders.filter(order => (order.status || '').toUpperCase() === row.key).length }));
   }
   get statusDonut(): string {
     const rows = this.statusMix;
